@@ -1,0 +1,1152 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>김엄마 독서실 - PC/태블릿 정기점검 시스템</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #2563eb;
+            --primary-dark: #1d4ed8;
+            --primary-light: #dbeafe;
+            --success: #10b981;
+            --success-light: #d1fae5;
+            --warning: #f59e0b;
+            --warning-light: #fef3c7;
+            --danger: #ef4444;
+            --danger-light: #fee2e2;
+            --gray-50: #f9fafb;
+            --gray-100: #f3f4f6;
+            --gray-200: #e5e7eb;
+            --gray-300: #d1d5db;
+            --gray-400: #9ca3af;
+            --gray-500: #6b7280;
+            --gray-600: #4b5563;
+            --gray-700: #374151;
+            --gray-800: #1f2937;
+            --gray-900: #111827;
+            --floor-7: #8b5cf6;
+            --floor-7-light: #ede9fe;
+            --floor-8: #0891b2;
+            --floor-8-light: #cffafe;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Noto Sans KR', sans-serif;
+            background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+            min-height: 100vh;
+            color: var(--gray-800);
+        }
+
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        header {
+            background: white;
+            border-radius: 16px;
+            padding: 24px 32px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 16px;
+        }
+
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .logo-icon {
+            width: 48px;
+            height: 48px;
+            background: linear-gradient(135deg, var(--primary), var(--floor-7));
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+        }
+
+        .logo h1 {
+            font-size: 24px;
+            font-weight: 700;
+            color: var(--gray-800);
+        }
+
+        .logo p {
+            font-size: 14px;
+            color: var(--gray-500);
+        }
+
+        .header-stats {
+            display: flex;
+            gap: 24px;
+            flex-wrap: wrap;
+        }
+
+        .stat-card {
+            text-align: center;
+            padding: 12px 20px;
+            background: var(--gray-50);
+            border-radius: 12px;
+        }
+
+        .stat-card .number {
+            font-size: 28px;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .stat-card .label {
+            font-size: 12px;
+            color: var(--gray-500);
+        }
+
+        .stat-card.warning .number {
+            color: var(--danger);
+        }
+
+        .main-content {
+            display: grid;
+            grid-template-columns: 1fr 380px;
+            gap: 24px;
+        }
+
+        @media (max-width: 1024px) {
+            .main-content {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel {
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .panel-header {
+            padding: 20px 24px;
+            border-bottom: 1px solid var(--gray-200);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 12px;
+        }
+
+        .panel-title {
+            font-size: 18px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .panel-title .icon {
+            font-size: 20px;
+        }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+        }
+
+        .filter-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--gray-200);
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .filter-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .filter-btn.active {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
+
+        .filter-btn.floor-7.active {
+            background: var(--floor-7);
+            border-color: var(--floor-7);
+        }
+
+        .filter-btn.floor-8.active {
+            background: var(--floor-8);
+            border-color: var(--floor-8);
+        }
+
+        .search-box {
+            display: flex;
+            gap: 8px;
+            padding: 16px 24px;
+            background: var(--gray-50);
+            border-bottom: 1px solid var(--gray-200);
+        }
+
+        .search-input {
+            flex: 1;
+            padding: 10px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            outline: none;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            border-color: var(--primary);
+        }
+
+        .student-list {
+            max-height: 600px;
+            overflow-y: auto;
+        }
+
+        .student-item {
+            display: flex;
+            align-items: center;
+            padding: 16px 24px;
+            border-bottom: 1px solid var(--gray-100);
+            transition: background 0.2s;
+            gap: 16px;
+        }
+
+        .student-item:hover {
+            background: var(--gray-50);
+        }
+
+        .student-item.overdue {
+            background: var(--danger-light);
+        }
+
+        .student-item.overdue:hover {
+            background: #fecaca;
+        }
+
+        .student-item.today {
+            background: var(--warning-light);
+        }
+
+        .student-item.completed {
+            background: var(--success-light);
+        }
+
+        .floor-badge {
+            padding: 4px 10px;
+            border-radius: 6px;
+            font-size: 12px;
+            font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        .floor-badge.floor-7 {
+            background: var(--floor-7-light);
+            color: var(--floor-7);
+        }
+
+        .floor-badge.floor-8 {
+            background: var(--floor-8-light);
+            color: var(--floor-8);
+        }
+
+        .student-info {
+            flex: 1;
+        }
+
+        .student-name {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 4px;
+        }
+
+        .student-status {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        .student-status.overdue {
+            color: var(--danger);
+            font-weight: 500;
+        }
+
+        .student-status.today {
+            color: var(--warning);
+            font-weight: 500;
+        }
+
+        .check-btn {
+            padding: 10px 20px;
+            background: var(--primary);
+            color: white;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            white-space: nowrap;
+        }
+
+        .check-btn:hover {
+            background: var(--primary-dark);
+            transform: translateY(-1px);
+        }
+
+        .check-btn.completed {
+            background: var(--success);
+        }
+
+        .check-btn:disabled {
+            background: var(--gray-300);
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* 오늘의 점검 대상 패널 */
+        .today-panel {
+            position: sticky;
+            top: 20px;
+        }
+
+        .today-list {
+            padding: 16px;
+        }
+
+        .today-item {
+            background: linear-gradient(135deg, var(--warning-light) 0%, #fde68a 100%);
+            border-radius: 12px;
+            padding: 16px;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            border: 2px solid var(--warning);
+        }
+
+        .today-item .priority-num {
+            width: 32px;
+            height: 32px;
+            background: var(--warning);
+            color: white;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 14px;
+            flex-shrink: 0;
+        }
+
+        .today-item .student-info {
+            flex: 1;
+        }
+
+        .refresh-btn {
+            width: 100%;
+            padding: 14px;
+            background: linear-gradient(135deg, var(--primary), var(--floor-7));
+            color: white;
+            border: none;
+            border-radius: 10px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+            font-family: inherit;
+            margin-top: 8px;
+        }
+
+        .refresh-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+
+        .daily-count {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 16px;
+        }
+
+        .daily-count label {
+            font-size: 14px;
+            color: var(--gray-600);
+        }
+
+        .daily-count input {
+            width: 60px;
+            padding: 8px 12px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            text-align: center;
+        }
+
+        /* 점검 이력 */
+        .history-panel {
+            margin-top: 24px;
+        }
+
+        .history-list {
+            padding: 16px;
+            max-height: 300px;
+            overflow-y: auto;
+        }
+
+        .history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px;
+            background: var(--gray-50);
+            border-radius: 8px;
+            margin-bottom: 8px;
+        }
+
+        .history-item .date {
+            font-size: 13px;
+            color: var(--gray-500);
+        }
+
+        /* 모달 */
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal-overlay.active {
+            display: flex;
+        }
+
+        .modal {
+            background: white;
+            border-radius: 16px;
+            padding: 32px;
+            max-width: 400px;
+            width: 90%;
+            text-align: center;
+        }
+
+        .modal h3 {
+            font-size: 20px;
+            margin-bottom: 8px;
+        }
+
+        .modal p {
+            color: var(--gray-500);
+            margin-bottom: 24px;
+        }
+
+        .modal-buttons {
+            display: flex;
+            gap: 12px;
+            justify-content: center;
+        }
+
+        .modal-btn {
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            border: none;
+        }
+
+        .modal-btn.cancel {
+            background: var(--gray-200);
+            color: var(--gray-700);
+        }
+
+        .modal-btn.confirm {
+            background: var(--success);
+            color: white;
+        }
+
+        /* 알림 토스트 */
+        .toast {
+            position: fixed;
+            bottom: 24px;
+            right: 24px;
+            background: var(--gray-800);
+            color: white;
+            padding: 16px 24px;
+            border-radius: 12px;
+            font-size: 14px;
+            font-weight: 500;
+            z-index: 1001;
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.3s;
+        }
+
+        .toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        .toast.success {
+            background: var(--success);
+        }
+
+        /* 빈 상태 */
+        .empty-state {
+            padding: 48px 24px;
+            text-align: center;
+            color: var(--gray-500);
+        }
+
+        .empty-state .icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* 데이터 관리 버튼들 */
+        .data-actions {
+            display: flex;
+            gap: 8px;
+            padding: 16px;
+            border-top: 1px solid var(--gray-200);
+            background: var(--gray-50);
+        }
+
+        .data-btn {
+            flex: 1;
+            padding: 10px;
+            border: 2px solid var(--gray-300);
+            background: white;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+
+        .data-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+
+        .data-btn.danger {
+            border-color: var(--danger);
+            color: var(--danger);
+        }
+
+        .data-btn.danger:hover {
+            background: var(--danger);
+            color: white;
+        }
+
+        /* 진행률 바 */
+        .progress-section {
+            padding: 16px;
+            background: var(--gray-50);
+        }
+
+        .progress-bar {
+            height: 8px;
+            background: var(--gray-200);
+            border-radius: 4px;
+            overflow: hidden;
+            margin-bottom: 8px;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--success), var(--primary));
+            transition: width 0.3s;
+        }
+
+        .progress-text {
+            font-size: 13px;
+            color: var(--gray-600);
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <header>
+            <div class="logo">
+                <div class="logo-icon">📱</div>
+                <div>
+                    <h1>김엄마 독서실</h1>
+                    <p>PC/태블릿 정기점검 시스템</p>
+                </div>
+            </div>
+            <div class="header-stats">
+                <div class="stat-card">
+                    <div class="number" id="total-students">180</div>
+                    <div class="label">전체 학생</div>
+                </div>
+                <div class="stat-card warning">
+                    <div class="number" id="overdue-count">0</div>
+                    <div class="label">점검 필요</div>
+                </div>
+                <div class="stat-card">
+                    <div class="number" id="completed-month">0</div>
+                    <div class="label">이번 달 완료</div>
+                </div>
+            </div>
+        </header>
+
+        <div class="main-content">
+            <div class="left-panel">
+                <div class="panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <span class="icon">👥</span>
+                            전체 학생 명단
+                        </h2>
+                        <div class="filters">
+                            <button class="filter-btn active" data-filter="all">전체</button>
+                            <button class="filter-btn floor-7" data-filter="7">7층</button>
+                            <button class="filter-btn floor-8" data-filter="8">8층</button>
+                            <button class="filter-btn" data-filter="overdue">⚠️ 점검필요</button>
+                        </div>
+                    </div>
+                    <div class="search-box">
+                        <input type="text" class="search-input" placeholder="학생 이름 검색..." id="search-input">
+                    </div>
+                    <div class="progress-section">
+                        <div class="progress-bar">
+                            <div class="progress-fill" id="progress-fill" style="width: 0%"></div>
+                        </div>
+                        <div class="progress-text" id="progress-text">이번 달 점검 진행률: 0%</div>
+                    </div>
+                    <div class="student-list" id="student-list">
+                        <!-- 학생 목록이 여기에 렌더링됩니다 -->
+                    </div>
+                </div>
+            </div>
+
+            <div class="right-panel">
+                <div class="panel today-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <span class="icon">🎯</span>
+                            오늘의 점검 대상
+                        </h2>
+                    </div>
+                    <div class="today-list" id="today-list">
+                        <div class="daily-count">
+                            <label>하루 점검 인원:</label>
+                            <input type="number" id="daily-count" value="6" min="1" max="20">
+                            <span>명</span>
+                        </div>
+                        <div id="today-students">
+                            <!-- 오늘의 점검 대상이 여기에 렌더링됩니다 -->
+                        </div>
+                        <button class="refresh-btn" id="refresh-btn">🔄 오늘의 점검 대상 다시 선정</button>
+                    </div>
+                    <div class="data-actions">
+                        <button class="data-btn" id="export-btn">📥 데이터 내보내기</button>
+                        <button class="data-btn danger" id="reset-btn">🗑️ 초기화</button>
+                    </div>
+                </div>
+
+                <div class="panel history-panel">
+                    <div class="panel-header">
+                        <h2 class="panel-title">
+                            <span class="icon">📋</span>
+                            최근 점검 이력
+                        </h2>
+                    </div>
+                    <div class="history-list" id="history-list">
+                        <!-- 점검 이력이 여기에 렌더링됩니다 -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 점검 확인 모달 -->
+    <div class="modal-overlay" id="confirm-modal">
+        <div class="modal">
+            <h3 id="modal-title">점검 완료 확인</h3>
+            <p id="modal-message">학생의 PC/태블릿 점검을 완료하시겠습니까?</p>
+            <div class="modal-buttons">
+                <button class="modal-btn cancel" id="modal-cancel">취소</button>
+                <button class="modal-btn confirm" id="modal-confirm">✓ 점검 완료</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 토스트 알림 -->
+    <div class="toast" id="toast"></div>
+
+    <script>
+        // 학생 데이터
+        const studentsData = {
+            "8층": ["김연서","이윤지","성예준","백주호","하준우","송나현","황지윤","윤예서","김민우","박지원","오종현","홍진우","신유빈","김용희","김현준","권준우","조영준","한승주","김규태","조예원","서민영","이서연","유가영","최은지","장도현","이승민","임지연","박예린","송하은","최진우","김서은","신예린","한유나","오민석","이정호","박수빈","조현우","김태희","황예진","정민준","고은서","배준혁","한지훈","강서현","문재원","김성은","이하린","박채원","조민지","강민수","손현우","유지민","전소영","오유진","임준호","장현서","안예준","권민재","신지현","이동원","최서영","김하윤","박시우","한태민","정예은","윤재원","고하늘","배민서","장유찬","문가온","김은채","이지호","박현지","조승우","강태영","손예빈","유하은","전민혁","오승민","임수현","장지우","안세진","권유나","신태환","이소민","최준호","김다온","박민지","한승현","정서윤","윤지안","고예진","배수빈","장민재","문정우","김유빈","이채원","박건우","조예린","강하늘","손지훈","유승환","전지원","오태민","임예진","장승주","안민서","권태윤","신유진","이건호","최다인","김민정","박준서","한지우","정태영","윤서준","고민지","배유나","장동현","문예은","김승훈","이예지","박소윤","조태현"],
+            "7층": ["김한나","이유빈","박찬우","성지원","권대희","황수진","손유주","김희진","조서연","김준희","김채이","이은교","이서원","이강우","박준후","박상언","조인성","박세진","김연준","공태민","김윤서","장하늘","이예원","박지훈","최수연","한도윤","정민서","오채영","임가현","강태호","신유나","윤하진","고영민","배소희","문준서","전예림","안성민","권서영","장지훈","이하은","김동현","박예지","조하윤","최민혁","한서준","정유빈","오승현","임지우","강예린","신동민","윤태양"]
+        };
+
+        // 전체 학생 배열 생성
+        let allStudents = [];
+        Object.keys(studentsData).forEach(floor => {
+            studentsData[floor].forEach(name => {
+                allStudents.push({
+                    name: name,
+                    floor: floor,
+                    lastCheck: null,
+                    nextCheck: null
+                });
+            });
+        });
+
+        // 로컬 스토리지에서 데이터 불러오기
+        function loadData() {
+            const saved = localStorage.getItem('pc-inspection-data');
+            if (saved) {
+                const data = JSON.parse(saved);
+                allStudents = allStudents.map(student => {
+                    const savedStudent = data.students?.find(s => s.name === student.name && s.floor === student.floor);
+                    if (savedStudent) {
+                        return { ...student, ...savedStudent };
+                    }
+                    return student;
+                });
+                return data;
+            }
+            return { students: allStudents, history: [], todaySelections: null, todayDate: null };
+        }
+
+        // 로컬 스토리지에 데이터 저장
+        function saveData() {
+            const data = {
+                students: allStudents,
+                history: inspectionHistory,
+                todaySelections: todaySelections,
+                todayDate: todayDate
+            };
+            localStorage.setItem('pc-inspection-data', JSON.stringify(data));
+        }
+
+        // 데이터 초기화
+        let inspectionHistory = [];
+        let todaySelections = [];
+        let todayDate = null;
+        let currentFilter = 'all';
+        let searchQuery = '';
+        let selectedStudent = null;
+
+        // 초기 데이터 로드
+        const savedData = loadData();
+        inspectionHistory = savedData.history || [];
+        todaySelections = savedData.todaySelections || [];
+        todayDate = savedData.todayDate;
+
+        // 오늘 날짜 체크 및 새로운 선정
+        const today = new Date().toDateString();
+        if (todayDate !== today) {
+            todayDate = today;
+            selectTodayStudents();
+        }
+
+        // 점검 필요 여부 확인
+        function isOverdue(student) {
+            if (!student.lastCheck) return true;
+            const lastCheck = new Date(student.lastCheck);
+            const now = new Date();
+            const diffDays = Math.floor((now - lastCheck) / (1000 * 60 * 60 * 24));
+            return diffDays >= 30;
+        }
+
+        // 점검까지 남은 일수
+        function getDaysUntilCheck(student) {
+            if (!student.lastCheck) return -9999;
+            const lastCheck = new Date(student.lastCheck);
+            const nextCheck = new Date(lastCheck);
+            nextCheck.setDate(nextCheck.getDate() + 30);
+            const now = new Date();
+            return Math.floor((nextCheck - now) / (1000 * 60 * 60 * 24));
+        }
+
+        // 오늘의 점검 대상 선정
+        function selectTodayStudents() {
+            const dailyCount = parseInt(document.getElementById('daily-count')?.value || 6);
+            
+            // 점검 필요한 학생들 (30일 이상 지난 학생 + 한번도 점검 안 한 학생)
+            let overdueStudents = allStudents.filter(s => isOverdue(s));
+            
+            // 랜덤 셔플
+            overdueStudents.sort(() => Math.random() - 0.5);
+            
+            // 일일 점검 인원만큼 선정
+            todaySelections = overdueStudents.slice(0, Math.min(dailyCount, overdueStudents.length));
+            
+            saveData();
+            renderTodayStudents();
+        }
+
+        // 학생 목록 렌더링
+        function renderStudentList() {
+            const container = document.getElementById('student-list');
+            
+            let filteredStudents = [...allStudents];
+            
+            // 필터 적용
+            if (currentFilter === '7') {
+                filteredStudents = filteredStudents.filter(s => s.floor === '7층');
+            } else if (currentFilter === '8') {
+                filteredStudents = filteredStudents.filter(s => s.floor === '8층');
+            } else if (currentFilter === 'overdue') {
+                filteredStudents = filteredStudents.filter(s => isOverdue(s));
+            }
+            
+            // 검색 적용
+            if (searchQuery) {
+                filteredStudents = filteredStudents.filter(s => 
+                    s.name.toLowerCase().includes(searchQuery.toLowerCase())
+                );
+            }
+            
+            // 정렬: 점검 필요한 학생 먼저
+            filteredStudents.sort((a, b) => {
+                const daysA = getDaysUntilCheck(a);
+                const daysB = getDaysUntilCheck(b);
+                return daysA - daysB;
+            });
+            
+            if (filteredStudents.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">🔍</div>
+                        <p>검색 결과가 없습니다</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = filteredStudents.map(student => {
+                const overdue = isOverdue(student);
+                const daysUntil = getDaysUntilCheck(student);
+                const isToday = todaySelections.some(s => s.name === student.name && s.floor === student.floor);
+                
+                let statusText = '';
+                let statusClass = '';
+                let itemClass = '';
+                
+                if (!student.lastCheck) {
+                    statusText = '미점검';
+                    statusClass = 'overdue';
+                    itemClass = 'overdue';
+                } else if (overdue) {
+                    statusText = `점검 필요 (${Math.abs(daysUntil)}일 경과)`;
+                    statusClass = 'overdue';
+                    itemClass = 'overdue';
+                } else if (daysUntil <= 7) {
+                    statusText = `${daysUntil}일 후 점검 예정`;
+                    statusClass = 'today';
+                    itemClass = 'today';
+                } else {
+                    statusText = `${daysUntil}일 후 점검 예정`;
+                    itemClass = '';
+                }
+                
+                if (isToday) {
+                    itemClass = 'today';
+                }
+                
+                const lastCheckText = student.lastCheck 
+                    ? new Date(student.lastCheck).toLocaleDateString('ko-KR')
+                    : '-';
+                
+                return `
+                    <div class="student-item ${itemClass}" data-name="${student.name}" data-floor="${student.floor}">
+                        <span class="floor-badge floor-${student.floor === '7층' ? '7' : '8'}">${student.floor}</span>
+                        <div class="student-info">
+                            <div class="student-name">${student.name}</div>
+                            <div class="student-status ${statusClass}">
+                                ${statusText} | 최근 점검: ${lastCheckText}
+                            </div>
+                        </div>
+                        <button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">
+                            점검 완료
+                        </button>
+                    </div>
+                `;
+            }).join('');
+            
+            updateStats();
+        }
+
+        // 오늘의 점검 대상 렌더링
+        function renderTodayStudents() {
+            const container = document.getElementById('today-students');
+            
+            if (todaySelections.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">✅</div>
+                        <p>모든 학생의 점검이 완료되었습니다!</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            container.innerHTML = todaySelections.map((student, index) => {
+                const originalStudent = allStudents.find(s => s.name === student.name && s.floor === student.floor);
+                const lastCheckText = originalStudent?.lastCheck 
+                    ? new Date(originalStudent.lastCheck).toLocaleDateString('ko-KR')
+                    : '미점검';
+                
+                return `
+                    <div class="today-item">
+                        <span class="priority-num">${index + 1}</span>
+                        <div class="student-info">
+                            <div class="student-name">${student.name}</div>
+                            <div class="student-status">
+                                <span class="floor-badge floor-${student.floor === '7층' ? '7' : '8'}">${student.floor}</span>
+                                최근: ${lastCheckText}
+                            </div>
+                        </div>
+                        <button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">
+                            ✓
+                        </button>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 점검 이력 렌더링
+        function renderHistory() {
+            const container = document.getElementById('history-list');
+            
+            if (inspectionHistory.length === 0) {
+                container.innerHTML = `
+                    <div class="empty-state">
+                        <div class="icon">📋</div>
+                        <p>아직 점검 이력이 없습니다</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            // 최근 20개만 표시
+            const recentHistory = inspectionHistory.slice(-20).reverse();
+            
+            container.innerHTML = recentHistory.map(item => `
+                <div class="history-item">
+                    <div>
+                        <span class="floor-badge floor-${item.floor === '7층' ? '7' : '8'}">${item.floor}</span>
+                        <strong>${item.name}</strong>
+                    </div>
+                    <div class="date">${new Date(item.date).toLocaleDateString('ko-KR')}</div>
+                </div>
+            `).join('');
+        }
+
+        // 통계 업데이트
+        function updateStats() {
+            const totalStudents = allStudents.length;
+            const overdueCount = allStudents.filter(s => isOverdue(s)).length;
+            
+            // 이번 달 완료 수
+            const now = new Date();
+            const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
+            const completedThisMonth = inspectionHistory.filter(item => 
+                new Date(item.date) >= monthStart
+            ).length;
+            
+            document.getElementById('total-students').textContent = totalStudents;
+            document.getElementById('overdue-count').textContent = overdueCount;
+            document.getElementById('completed-month').textContent = completedThisMonth;
+            
+            // 진행률 계산
+            const completedStudents = allStudents.filter(s => !isOverdue(s)).length;
+            const progressPercent = Math.round((completedStudents / totalStudents) * 100);
+            document.getElementById('progress-fill').style.width = progressPercent + '%';
+            document.getElementById('progress-text').textContent = `이번 달 점검 진행률: ${progressPercent}% (${completedStudents}/${totalStudents}명)`;
+        }
+
+        // 점검 완료 모달 열기
+        function openConfirmModal(name, floor) {
+            selectedStudent = { name, floor };
+            document.getElementById('modal-title').textContent = `${name} 점검 완료`;
+            document.getElementById('modal-message').textContent = `${floor} ${name} 학생의 PC/태블릿 점검을 완료하시겠습니까?`;
+            document.getElementById('confirm-modal').classList.add('active');
+        }
+
+        // 모달 닫기
+        function closeModal() {
+            document.getElementById('confirm-modal').classList.remove('active');
+            selectedStudent = null;
+        }
+
+        // 점검 완료 처리
+        function completeInspection() {
+            if (!selectedStudent) return;
+            
+            const now = new Date();
+            
+            // 학생 정보 업데이트
+            const studentIndex = allStudents.findIndex(s => 
+                s.name === selectedStudent.name && s.floor === selectedStudent.floor
+            );
+            
+            if (studentIndex !== -1) {
+                allStudents[studentIndex].lastCheck = now.toISOString();
+                allStudents[studentIndex].nextCheck = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000).toISOString();
+            }
+            
+            // 이력 추가
+            inspectionHistory.push({
+                name: selectedStudent.name,
+                floor: selectedStudent.floor,
+                date: now.toISOString()
+            });
+            
+            // 오늘의 선정 목록에서 제거
+            todaySelections = todaySelections.filter(s => 
+                !(s.name === selectedStudent.name && s.floor === selectedStudent.floor)
+            );
+            
+            saveData();
+            closeModal();
+            
+            // 화면 업데이트
+            renderStudentList();
+            renderTodayStudents();
+            renderHistory();
+            
+            // 토스트 표시
+            showToast(`✅ ${selectedStudent.name} 학생 점검 완료!`, 'success');
+        }
+
+        // 토스트 표시
+        function showToast(message, type = '') {
+            const toast = document.getElementById('toast');
+            toast.textContent = message;
+            toast.className = 'toast ' + type;
+            toast.classList.add('show');
+            
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        // 데이터 내보내기
+        function exportData() {
+            const data = {
+                exportDate: new Date().toISOString(),
+                students: allStudents,
+                history: inspectionHistory
+            };
+            
+            const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' });
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `pc-inspection-backup-${new Date().toISOString().split('T')[0]}.json`;
+            a.click();
+            URL.revokeObjectURL(url);
+            
+            showToast('📥 데이터가 내보내기 되었습니다');
+        }
+
+        // 데이터 초기화
+        function resetData() {
+            if (confirm('정말로 모든 점검 기록을 초기화하시겠습니까?\n이 작업은 되돌릴 수 없습니다.')) {
+                localStorage.removeItem('pc-inspection-data');
+                allStudents = allStudents.map(s => ({ ...s, lastCheck: null, nextCheck: null }));
+                inspectionHistory = [];
+                todaySelections = [];
+                selectTodayStudents();
+                renderStudentList();
+                renderHistory();
+                showToast('🗑️ 모든 데이터가 초기화되었습니다');
+            }
+        }
+
+        // 이벤트 리스너 설정
+        document.addEventListener('DOMContentLoaded', function() {
+            // 필터 버튼
+            document.querySelectorAll('.filter-btn').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+                    this.classList.add('active');
+                    currentFilter = this.dataset.filter;
+                    renderStudentList();
+                });
+            });
+            
+            // 검색
+            document.getElementById('search-input').addEventListener('input', function(e) {
+                searchQuery = e.target.value;
+                renderStudentList();
+            });
+            
+            // 오늘의 점검 대상 새로고침
+            document.getElementById('refresh-btn').addEventListener('click', function() {
+                if (confirm('오늘의 점검 대상을 다시 선정하시겠습니까?')) {
+                    selectTodayStudents();
+                    renderStudentList();
+                    showToast('🎯 오늘의 점검 대상이 다시 선정되었습니다');
+                }
+            });
+            
+            // 일일 점검 인원 변경
+            document.getElementById('daily-count').addEventListener('change', function() {
+                selectTodayStudents();
+            });
+            
+            // 모달 버튼
+            document.getElementById('modal-cancel').addEventListener('click', closeModal);
+            document.getElementById('modal-confirm').addEventListener('click', completeInspection);
+            
+            // 모달 외부 클릭 시 닫기
+            document.getElementById('confirm-modal').addEventListener('click', function(e) {
+                if (e.target === this) closeModal();
+            });
+            
+            // 데이터 관리 버튼
+            document.getElementById('export-btn').addEventListener('click', exportData);
+            document.getElementById('reset-btn').addEventListener('click', resetData);
+            
+            // 초기 렌더링
+            renderStudentList();
+            renderTodayStudents();
+            renderHistory();
+        });
+    </script>
+</body>
+</html>
