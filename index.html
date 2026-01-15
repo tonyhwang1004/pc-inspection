@@ -242,6 +242,7 @@
             margin-bottom: 8px;
         }
         .history-item .date { font-size: 13px; color: var(--gray-500); }
+        .history-item .note { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
         
         .modal-overlay {
             display: none;
@@ -262,7 +263,7 @@
             text-align: center;
         }
         .modal h3 { font-size: 20px; margin-bottom: 8px; }
-        .modal p { color: var(--gray-500); margin-bottom: 24px; }
+        .modal p { color: var(--gray-500); margin-bottom: 16px; }
         .modal-buttons { display: flex; gap: 12px; justify-content: center; }
         .modal-btn {
             padding: 12px 24px;
@@ -275,6 +276,36 @@
         }
         .modal-btn.cancel { background: var(--gray-200); color: var(--gray-700); }
         .modal-btn.confirm { background: var(--success); color: white; }
+        
+        /* 특이사항 입력창 스타일 */
+        .note-input-wrapper {
+            margin: 16px 0;
+            text-align: left;
+        }
+        .note-input-wrapper label {
+            display: block;
+            font-size: 14px;
+            font-weight: 500;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+        .note-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 80px;
+        }
+        .note-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .note-input::placeholder {
+            color: var(--gray-400);
+        }
         
         .settings-form { text-align: left; margin-bottom: 24px; }
         .settings-form label { display: block; font-size: 14px; font-weight: 500; margin-bottom: 8px; }
@@ -429,10 +460,15 @@
         </div>
     </div>
 
+    <!-- 점검 확인 모달 (특이사항 입력창 추가) -->
     <div class="modal-overlay" id="confirm-modal">
         <div class="modal">
             <h3 id="modal-title">점검 완료 확인</h3>
             <p id="modal-message">학생의 PC/태블릿 점검을 완료하시겠습니까?</p>
+            <div class="note-input-wrapper">
+                <label for="note-input">📝 특이사항 (선택)</label>
+                <textarea id="note-input" class="note-input" placeholder="예: 키보드 불량, 모니터 깜빡임, 충전기 필요 등"></textarea>
+            </div>
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeModal()">취소</button>
                 <button class="modal-btn confirm" onclick="completeInspection()">✓ 점검 완료</button>
@@ -767,6 +803,7 @@
                     <div>
                         <span class="floor-badge floor-${item.floor === '7층' ? '7' : '8'}">${item.floor}</span>
                         <strong>${item.name}</strong>
+                        ${item.note ? `<div class="note">📝 ${item.note}</div>` : ''}
                     </div>
                     <div class="date">${new Date(item.date).toLocaleDateString('ko-KR')}</div>
                 </div>
@@ -795,11 +832,13 @@
             selectedStudent = { name, floor };
             document.getElementById('modal-title').textContent = `${name} 점검 완료`;
             document.getElementById('modal-message').textContent = `${floor} ${name} 학생의 PC/태블릿 점검을 완료하시겠습니까?`;
+            document.getElementById('note-input').value = ''; // 특이사항 초기화
             document.getElementById('confirm-modal').classList.add('active');
         }
 
         function closeModal() {
             document.getElementById('confirm-modal').classList.remove('active');
+            document.getElementById('note-input').value = '';
             selectedStudent = null;
         }
 
@@ -807,7 +846,14 @@
             if (!selectedStudent) return;
             
             const now = new Date();
-            const record = { name: selectedStudent.name, floor: selectedStudent.floor, date: now.toISOString() };
+            const note = document.getElementById('note-input').value.trim(); // 특이사항 가져오기
+            
+            const record = { 
+                name: selectedStudent.name, 
+                floor: selectedStudent.floor, 
+                date: now.toISOString(),
+                note: note  // 특이사항 추가
+            };
             
             const idx = allStudents.findIndex(s => s.name === selectedStudent.name && s.floor === selectedStudent.floor);
             if (idx !== -1) {
@@ -821,7 +867,9 @@
             closeModal();
             saveRecordToServer(record);
             render();
-            showToast(`✅ ${selectedStudent.name} 점검 완료!`, 'success');
+            
+            const noteMsg = note ? ` (특이사항: ${note})` : '';
+            showToast(`✅ ${selectedStudent.name} 점검 완료!${noteMsg}`, 'success');
         }
 
         function openSettingsModal() {
