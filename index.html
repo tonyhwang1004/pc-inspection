@@ -146,7 +146,6 @@
         }
         .student-item:hover { background: var(--gray-50); }
         .student-item.overdue { background: var(--danger-light); }
-        .student-item.today { background: var(--warning-light); }
         
         .floor-badge { padding: 4px 10px; border-radius: 6px; font-size: 12px; font-weight: 600; }
         .floor-badge.floor-7 { background: var(--floor-7-light); color: var(--floor-7); }
@@ -156,6 +155,7 @@
         .student-name { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
         .student-status { font-size: 13px; color: var(--gray-500); }
         .student-status.overdue { color: var(--danger); font-weight: 500; }
+        .inspector-info { font-size: 12px; color: var(--primary); margin-top: 2px; }
         
         .check-btn {
             padding: 10px 20px;
@@ -170,48 +170,7 @@
         }
         .check-btn:hover { background: var(--primary-dark); }
         
-        .today-panel { position: sticky; top: 20px; }
-        .today-list { padding: 16px; }
-        .today-item {
-            background: linear-gradient(135deg, var(--warning-light) 0%, #fde68a 100%);
-            border-radius: 12px;
-            padding: 16px;
-            margin-bottom: 12px;
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            border: 2px solid var(--warning);
-        }
-        .today-item .priority-num {
-            width: 32px; height: 32px;
-            background: var(--warning);
-            color: white;
-            border-radius: 50%;
-            display: flex; align-items: center; justify-content: center;
-            font-weight: 700; font-size: 14px;
-        }
-        
-        .daily-count { display: flex; align-items: center; gap: 8px; margin-bottom: 16px; }
-        .daily-count label { font-size: 14px; color: var(--gray-600); }
-        .daily-count input {
-            width: 60px; padding: 8px 12px;
-            border: 2px solid var(--gray-200);
-            border-radius: 8px; font-size: 14px; text-align: center;
-        }
-        
-        .refresh-btn {
-            width: 100%;
-            padding: 14px;
-            background: linear-gradient(135deg, var(--primary), var(--floor-7));
-            color: white;
-            border: none;
-            border-radius: 10px;
-            font-size: 15px;
-            font-weight: 600;
-            cursor: pointer;
-            font-family: inherit;
-            margin-top: 8px;
-        }
+        .right-panel { position: sticky; top: 20px; }
         
         .data-actions { display: flex; gap: 8px; padding: 16px; border-top: 1px solid var(--gray-200); background: var(--gray-50); flex-wrap: wrap; }
         .data-btn {
@@ -230,19 +189,19 @@
         .data-btn.danger { border-color: var(--danger); color: var(--danger); }
         .data-btn.danger:hover { background: var(--danger); color: white; }
         
-        .history-panel { margin-top: 24px; }
-        .history-list { padding: 16px; max-height: 300px; overflow-y: auto; }
+        .history-list { padding: 16px; max-height: 500px; overflow-y: auto; }
         .history-item {
             display: flex;
             justify-content: space-between;
-            align-items: center;
+            align-items: flex-start;
             padding: 12px;
             background: var(--gray-50);
             border-radius: 8px;
             margin-bottom: 8px;
         }
-        .history-item .date { font-size: 13px; color: var(--gray-500); }
+        .history-item .date { font-size: 13px; color: var(--gray-500); text-align: right; }
         .history-item .note { font-size: 12px; color: var(--gray-400); margin-top: 4px; }
+        .history-item .inspector { font-size: 12px; color: var(--primary); margin-top: 4px; font-weight: 500; }
         
         .modal-overlay {
             display: none;
@@ -277,17 +236,35 @@
         .modal-btn.cancel { background: var(--gray-200); color: var(--gray-700); }
         .modal-btn.confirm { background: var(--success); color: white; }
         
-        /* 특이사항 입력창 스타일 */
-        .note-input-wrapper {
+        .input-wrapper {
             margin: 16px 0;
             text-align: left;
         }
-        .note-input-wrapper label {
+        .input-wrapper label {
             display: block;
             font-size: 14px;
             font-weight: 500;
             color: var(--gray-700);
             margin-bottom: 8px;
+        }
+        .input-wrapper label.required::after {
+            content: ' *';
+            color: var(--danger);
+        }
+        .text-input {
+            width: 100%;
+            padding: 12px 16px;
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            font-size: 14px;
+            font-family: inherit;
+        }
+        .text-input:focus {
+            outline: none;
+            border-color: var(--primary);
+        }
+        .text-input::placeholder {
+            color: var(--gray-400);
         }
         .note-input {
             width: 100%;
@@ -361,6 +338,34 @@
             font-weight: 500;
             cursor: pointer;
         }
+
+        /* 조치자 선택 버튼 스타일 */
+        .inspector-buttons {
+            display: flex;
+            gap: 8px;
+            flex-wrap: wrap;
+            margin-top: 8px;
+        }
+        .inspector-btn {
+            padding: 8px 16px;
+            border: 2px solid var(--gray-300);
+            background: white;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            cursor: pointer;
+            font-family: inherit;
+            transition: all 0.2s;
+        }
+        .inspector-btn:hover {
+            border-color: var(--primary);
+            color: var(--primary);
+        }
+        .inspector-btn.selected {
+            background: var(--primary);
+            border-color: var(--primary);
+            color: white;
+        }
     </style>
 </head>
 <body>
@@ -430,45 +435,40 @@
             </div>
 
             <div class="right-panel">
-                <div class="panel today-panel">
+                <div class="panel">
                     <div class="panel-header">
-                        <h2 class="panel-title"><span class="icon">🎯</span> 오늘의 점검 대상</h2>
+                        <h2 class="panel-title"><span class="icon">📋</span> 점검 이력</h2>
                     </div>
-                    <div class="today-list">
-                        <div class="daily-count">
-                            <label>하루 점검 인원:</label>
-                            <input type="number" id="daily-count" value="6" min="1" max="20">
-                            <span>명</span>
-                        </div>
-                        <div id="today-students"></div>
-                        <button class="refresh-btn" id="refresh-btn">🔄 오늘의 점검 대상 다시 선정</button>
-                    </div>
+                    <div class="history-list" id="history-list"></div>
                     <div class="data-actions">
                         <button class="data-btn" onclick="openSettingsModal()">⚙️ 설정</button>
                         <button class="data-btn" onclick="exportData()">📥 내보내기</button>
                         <button class="data-btn danger" onclick="resetData()">🗑️ 초기화</button>
                     </div>
                 </div>
-
-                <div class="panel history-panel">
-                    <div class="panel-header">
-                        <h2 class="panel-title"><span class="icon">📋</span> 최근 점검 이력</h2>
-                    </div>
-                    <div class="history-list" id="history-list"></div>
-                </div>
             </div>
         </div>
     </div>
 
-    <!-- 점검 확인 모달 (특이사항 입력창 추가) -->
+    <!-- 점검 확인 모달 (조치자 입력 추가) -->
     <div class="modal-overlay" id="confirm-modal">
         <div class="modal">
             <h3 id="modal-title">점검 완료 확인</h3>
             <p id="modal-message">학생의 PC/태블릿 점검을 완료하시겠습니까?</p>
-            <div class="note-input-wrapper">
+            
+            <div class="input-wrapper">
+                <label for="inspector-input" class="required">👤 조치자 (담당자)</label>
+                <input type="text" id="inspector-input" class="text-input" placeholder="조치한 사람 이름을 입력하세요">
+                <div class="inspector-buttons" id="inspector-buttons">
+                    <!-- 최근 조치자 버튼이 여기에 추가됨 -->
+                </div>
+            </div>
+            
+            <div class="input-wrapper">
                 <label for="note-input">📝 특이사항 (선택)</label>
                 <textarea id="note-input" class="note-input" placeholder="예: 키보드 불량, 모니터 깜빡임, 충전기 필요 등"></textarea>
             </div>
+            
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeModal()">취소</button>
                 <button class="modal-btn confirm" onclick="completeInspection()">✓ 점검 완료</button>
@@ -499,11 +499,10 @@
     <script>
         let allStudents = [];
         let inspectionHistory = [];
-        let todaySelections = [];
-        let todayDate = null;
         let currentFilter = 'all';
         let searchQuery = '';
         let selectedStudent = null;
+        let recentInspectors = []; // 최근 조치자 목록
         
         let apiUrl = localStorage.getItem('pc-inspection-api-url') || '';
         let syncInterval = parseInt(localStorage.getItem('pc-inspection-sync-interval')) || 30;
@@ -533,19 +532,6 @@
                 renderStudentList();
             });
             
-            document.getElementById('refresh-btn').addEventListener('click', () => {
-                if (confirm('오늘의 점검 대상을 다시 선정하시겠습니까?')) {
-                    selectTodayStudents();
-                    render();
-                    showToast('🎯 점검 대상이 다시 선정되었습니다');
-                }
-            });
-            
-            document.getElementById('daily-count').addEventListener('change', () => {
-                selectTodayStudents();
-                render();
-            });
-            
             document.getElementById('confirm-modal').addEventListener('click', e => {
                 if (e.target.id === 'confirm-modal') closeModal();
             });
@@ -561,9 +547,8 @@
                 const data = JSON.parse(saved);
                 allStudents = data.students || [];
                 inspectionHistory = data.history || [];
-                todaySelections = data.todaySelections || [];
-                todayDate = data.todayDate;
                 pendingRecords = data.pendingRecords || [];
+                recentInspectors = data.recentInspectors || [];
             }
         }
 
@@ -571,10 +556,19 @@
             localStorage.setItem('pc-inspection-data', JSON.stringify({
                 students: allStudents,
                 history: inspectionHistory,
-                todaySelections: todaySelections,
-                todayDate: todayDate,
-                pendingRecords: pendingRecords
+                pendingRecords: pendingRecords,
+                recentInspectors: recentInspectors
             }));
+        }
+
+        function updateRecentInspectors(inspector) {
+            if (!inspector) return;
+            // 중복 제거하고 최근 조치자를 맨 앞에 추가
+            recentInspectors = recentInspectors.filter(i => i !== inspector);
+            recentInspectors.unshift(inspector);
+            // 최대 5명까지만 저장
+            recentInspectors = recentInspectors.slice(0, 5);
+            saveLocalData();
         }
 
         function updateSyncStatus(status, text) {
@@ -599,7 +593,8 @@
                     allStudents = data.students.map(s => ({
                         name: s.name,
                         floor: s.floor,
-                        lastCheck: s.lastCheck
+                        lastCheck: s.lastCheck,
+                        lastInspector: s.lastInspector || ''
                     }));
                 }
                 
@@ -625,11 +620,6 @@
                         body: JSON.stringify({ action: 'pc_syncRecords', records: pendingRecords })
                     });
                     pendingRecords = [];
-                }
-                
-                if (todaySelections.length === 0 || !todayDate || todayDate !== new Date().toDateString()) {
-                    todayDate = new Date().toDateString();
-                    selectTodayStudents();
                 }
                 
                 saveLocalData();
@@ -698,17 +688,8 @@
             return Math.floor((nextCheck - new Date()) / (1000 * 60 * 60 * 24));
         }
 
-        function selectTodayStudents() {
-            const count = parseInt(document.getElementById('daily-count')?.value || 6);
-            let overdue = allStudents.filter(s => isOverdue(s));
-            overdue.sort(() => Math.random() - 0.5);
-            todaySelections = overdue.slice(0, Math.min(count, overdue.length));
-            saveLocalData();
-        }
-
         function render() {
             renderStudentList();
-            renderTodayStudents();
             renderHistory();
             updateStats();
         }
@@ -735,7 +716,6 @@
             container.innerHTML = filtered.map(student => {
                 const overdue = isOverdue(student);
                 const days = getDaysUntilCheck(student);
-                const isToday = todaySelections.some(s => s.name === student.name && s.floor === student.floor);
                 
                 let status = '', statusClass = '', itemClass = '';
                 if (!student.lastCheck) {
@@ -745,9 +725,9 @@
                 } else {
                     status = `${days}일 후 점검 예정`;
                 }
-                if (isToday) itemClass = 'today';
                 
                 const lastCheck = student.lastCheck ? new Date(student.lastCheck).toLocaleDateString('ko-KR') : '-';
+                const inspectorInfo = student.lastInspector ? `<div class="inspector-info">👤 최근 조치자: ${student.lastInspector}</div>` : '';
                 
                 return `
                     <div class="student-item ${itemClass}">
@@ -755,36 +735,9 @@
                         <div class="student-info">
                             <div class="student-name">${student.name}</div>
                             <div class="student-status ${statusClass}">${status} | 최근: ${lastCheck}</div>
+                            ${inspectorInfo}
                         </div>
                         <button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">점검 완료</button>
-                    </div>
-                `;
-            }).join('');
-        }
-
-        function renderTodayStudents() {
-            const container = document.getElementById('today-students');
-            
-            if (todaySelections.length === 0) {
-                container.innerHTML = '<div class="empty-state"><div class="icon">✅</div><p>점검 완료!</p></div>';
-                return;
-            }
-            
-            container.innerHTML = todaySelections.map((student, i) => {
-                const original = allStudents.find(s => s.name === student.name && s.floor === student.floor);
-                const lastCheck = original?.lastCheck ? new Date(original.lastCheck).toLocaleDateString('ko-KR') : '미점검';
-                
-                return `
-                    <div class="today-item">
-                        <span class="priority-num">${i + 1}</span>
-                        <div class="student-info">
-                            <div class="student-name">${student.name}</div>
-                            <div class="student-status">
-                                <span class="floor-badge floor-${student.floor === '7층' ? '7' : '8'}">${student.floor}</span>
-                                최근: ${lastCheck}
-                            </div>
-                        </div>
-                        <button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">✓</button>
                     </div>
                 `;
             }).join('');
@@ -798,11 +751,12 @@
                 return;
             }
             
-            container.innerHTML = inspectionHistory.slice(-20).reverse().map(item => `
+            container.innerHTML = inspectionHistory.slice(-30).reverse().map(item => `
                 <div class="history-item">
                     <div>
                         <span class="floor-badge floor-${item.floor === '7층' ? '7' : '8'}">${item.floor}</span>
                         <strong>${item.name}</strong>
+                        ${item.inspector ? `<div class="inspector">👤 조치자: ${item.inspector}</div>` : ''}
                         ${item.note ? `<div class="note">📝 ${item.note}</div>` : ''}
                     </div>
                     <div class="date">${new Date(item.date).toLocaleDateString('ko-KR')}</div>
@@ -832,36 +786,66 @@
             selectedStudent = { name, floor };
             document.getElementById('modal-title').textContent = `${name} 점검 완료`;
             document.getElementById('modal-message').textContent = `${floor} ${name} 학생의 PC/태블릿 점검을 완료하시겠습니까?`;
-            document.getElementById('note-input').value = ''; // 특이사항 초기화
+            document.getElementById('note-input').value = '';
+            document.getElementById('inspector-input').value = '';
+            
+            // 최근 조치자 버튼 렌더링
+            const buttonsContainer = document.getElementById('inspector-buttons');
+            if (recentInspectors.length > 0) {
+                buttonsContainer.innerHTML = recentInspectors.map(inspector => 
+                    `<button class="inspector-btn" onclick="selectInspector('${inspector}')">${inspector}</button>`
+                ).join('');
+            } else {
+                buttonsContainer.innerHTML = '<span style="font-size: 12px; color: var(--gray-400);">최근 조치자가 없습니다</span>';
+            }
+            
             document.getElementById('confirm-modal').classList.add('active');
+        }
+
+        function selectInspector(name) {
+            document.getElementById('inspector-input').value = name;
+            // 버튼 선택 상태 표시
+            document.querySelectorAll('.inspector-btn').forEach(btn => {
+                btn.classList.toggle('selected', btn.textContent === name);
+            });
         }
 
         function closeModal() {
             document.getElementById('confirm-modal').classList.remove('active');
             document.getElementById('note-input').value = '';
+            document.getElementById('inspector-input').value = '';
             selectedStudent = null;
         }
 
         async function completeInspection() {
             if (!selectedStudent) return;
             
+            const inspector = document.getElementById('inspector-input').value.trim();
+            if (!inspector) {
+                showToast('⚠️ 조치자를 입력해주세요', '');
+                document.getElementById('inspector-input').focus();
+                return;
+            }
+            
             const now = new Date();
-            const note = document.getElementById('note-input').value.trim(); // 특이사항 가져오기
+            const note = document.getElementById('note-input').value.trim();
             
             const record = { 
                 name: selectedStudent.name, 
                 floor: selectedStudent.floor, 
                 date: now.toISOString(),
-                note: note  // 특이사항 추가
+                inspector: inspector,
+                note: note
             };
             
             const idx = allStudents.findIndex(s => s.name === selectedStudent.name && s.floor === selectedStudent.floor);
             if (idx !== -1) {
                 allStudents[idx].lastCheck = now.toISOString();
+                allStudents[idx].lastInspector = inspector;
             }
             
             inspectionHistory.push(record);
-            todaySelections = todaySelections.filter(s => !(s.name === selectedStudent.name && s.floor === selectedStudent.floor));
+            updateRecentInspectors(inspector);
             
             saveLocalData();
             closeModal();
@@ -869,7 +853,7 @@
             render();
             
             const noteMsg = note ? ` (특이사항: ${note})` : '';
-            showToast(`✅ ${selectedStudent.name} 점검 완료!${noteMsg}`, 'success');
+            showToast(`✅ ${selectedStudent.name} 점검 완료! (조치자: ${inspector})${noteMsg}`, 'success');
         }
 
         function openSettingsModal() {
@@ -916,8 +900,8 @@
                 localStorage.removeItem('pc-inspection-data');
                 allStudents = [];
                 inspectionHistory = [];
-                todaySelections = [];
                 pendingRecords = [];
+                recentInspectors = [];
                 startAutoSync();
                 showToast('🗑️ 초기화 완료');
             }
