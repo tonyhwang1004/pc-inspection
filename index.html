@@ -453,8 +453,8 @@
     <!-- 점검 확인 모달 (조치자 입력 추가) -->
     <div class="modal-overlay" id="confirm-modal">
         <div class="modal">
-            <h3 id="modal-title">점검 완료 확인</h3>
-            <p id="modal-message">학생의 PC/태블릿 점검을 완료하시겠습니까?</p>
+            <h3 id="modal-title">점검 필요 확인</h3>
+            <p id="modal-message">학생의 PC/태블릿 점검이 필요합니다.</p>
             
             <div class="input-wrapper">
                 <label for="inspector-input" class="required">👤 조치자 (담당자)</label>
@@ -471,7 +471,7 @@
             
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeModal()">취소</button>
-                <button class="modal-btn confirm" onclick="completeInspection()">✓ 점검 완료</button>
+                <button class="modal-btn confirm" onclick="completeInspection()">✓ 점검 필요</button>
             </div>
         </div>
     </div>
@@ -737,7 +737,7 @@
                             <div class="student-status ${statusClass}">${status} | 최근: ${lastCheck}</div>
                             ${inspectorInfo}
                         </div>
-                        <button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">점검 완료</button>
+                        <button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">점검 필요</button>
                     </div>
                 `;
             }).join('');
@@ -784,8 +784,8 @@
 
         function openConfirmModal(name, floor) {
             selectedStudent = { name, floor };
-            document.getElementById('modal-title').textContent = `${name} 점검 완료`;
-            document.getElementById('modal-message').textContent = `${floor} ${name} 학생의 PC/태블릿 점검을 완료하시겠습니까?`;
+            document.getElementById('modal-title').textContent = `${name} 점검 필요`;
+            document.getElementById('modal-message').textContent = `${floor} ${name} 학생의 PC/태블릿 점검이 필요합니다.`;
             document.getElementById('note-input').value = '';
             document.getElementById('inspector-input').value = '';
             
@@ -853,7 +853,7 @@
             render();
             
             const noteMsg = note ? ` (특이사항: ${note})` : '';
-            showToast(`✅ ${selectedStudent.name} 점검 완료! (조치자: ${inspector})${noteMsg}`, 'success');
+            showToast(`✅ ${selectedStudent.name} 점검 필요 등록! (조치자: ${inspector})${noteMsg}`, 'success');
         }
 
         function openSettingsModal() {
