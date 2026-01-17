@@ -370,7 +370,7 @@
 </head>
 <body>
     <div class="container">
-        <div class="connection-banner" id="connection-banner">
+        <div class="connection-banner hidden" id="connection-banner">
             <div class="message">
                 <span class="icon">📊</span>
                 <div class="text">
@@ -391,7 +391,7 @@
             </div>
             <div class="sync-status" id="sync-status" onclick="manualSync()">
                 <span class="sync-dot"></span>
-                <span class="sync-text">오프라인</span>
+                <span class="sync-text">동기화 중...</span>
             </div>
             <div class="header-stats">
                 <div class="stat-card">
@@ -497,14 +497,18 @@
     <div class="toast" id="toast"></div>
 
     <script>
+        // ★★★ API URL 하드코딩 - 모든 기기에서 자동 연결 ★★★
+        const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbwGFbsj8FgFIuF-iFkJ4ekyS76MWQf9UrUysJ-Fs12vuVByJwenoYRgOJeOZiPOa6gzkg/exec';
+        
         let allStudents = [];
         let inspectionHistory = [];
         let currentFilter = 'all';
         let searchQuery = '';
         let selectedStudent = null;
-        let recentInspectors = []; // 최근 조치자 목록
+        let recentInspectors = [];
         
-        let apiUrl = localStorage.getItem('pc-inspection-api-url') || '';
+        // localStorage에 저장된 URL이 있으면 사용, 없으면 기본 URL 사용
+        let apiUrl = localStorage.getItem('pc-inspection-api-url') || DEFAULT_API_URL;
         let syncInterval = parseInt(localStorage.getItem('pc-inspection-sync-interval')) || 30;
         let syncTimer = null;
         let isSyncing = false;
@@ -563,10 +567,8 @@
 
         function updateRecentInspectors(inspector) {
             if (!inspector) return;
-            // 중복 제거하고 최근 조치자를 맨 앞에 추가
             recentInspectors = recentInspectors.filter(i => i !== inspector);
             recentInspectors.unshift(inspector);
-            // 최대 5명까지만 저장
             recentInspectors = recentInspectors.slice(0, 5);
             saveLocalData();
         }
@@ -789,7 +791,6 @@
             document.getElementById('note-input').value = '';
             document.getElementById('inspector-input').value = '';
             
-            // 최근 조치자 버튼 렌더링
             const buttonsContainer = document.getElementById('inspector-buttons');
             if (recentInspectors.length > 0) {
                 buttonsContainer.innerHTML = recentInspectors.map(inspector => 
@@ -804,7 +805,6 @@
 
         function selectInspector(name) {
             document.getElementById('inspector-input').value = name;
-            // 버튼 선택 상태 표시
             document.querySelectorAll('.inspector-btn').forEach(btn => {
                 btn.classList.toggle('selected', btn.textContent === name);
             });
