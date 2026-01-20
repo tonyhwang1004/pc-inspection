@@ -517,7 +517,6 @@
         let syncInterval = parseInt(localStorage.getItem('pc-inspection-sync-interval')) || 30;
         let syncTimer = null;
         let isSyncing = false;
-        let pendingRecords = [];
 
         document.addEventListener('DOMContentLoaded', function() {
             loadLocalData();
@@ -556,7 +555,6 @@
                 const data = JSON.parse(saved);
                 allStudents = data.students || [];
                 inspectionHistory = data.history || [];
-                pendingRecords = data.pendingRecords || [];
                 recentInspectors = data.recentInspectors || [];
             }
         }
@@ -565,7 +563,6 @@
             localStorage.setItem('pc-inspection-data', JSON.stringify({
                 students: allStudents,
                 history: inspectionHistory,
-                pendingRecords: pendingRecords,
                 recentInspectors: recentInspectors
             }));
         }
@@ -584,7 +581,7 @@
             el.querySelector('.sync-text').textContent = text;
         }
 
-        // ★★★ CORS 문제 해결을 위한 JSONP 방식 ★★★
+        // ★★★ 서버에서 데이터 가져오기 ★★★
         async function syncWithServer() {
             if (!apiUrl || isSyncing) return;
             
@@ -592,8 +589,8 @@
             updateSyncStatus('syncing', '동기화 중...');
             
             try {
-                // JSONP 방식으로 GET 요청
-                const data = await fetchWithJsonp(`${apiUrl}?action=pc_getAll`);
+                const response = await fetch(`${apiUrl}?action=pc_getAll`);
+                const data = await response.json();
                 
                 if (data.error) throw new Error(data.error);
                 
@@ -606,27 +603,8 @@
                     }));
                 }
                 
-                if (data.records && data.records.length > 0) {
-                    const existingKeys = new Set(inspectionHistory.map(r => 
-                        `${r.name}_${r.floor}_${new Date(r.date).getTime()}`
-                    ));
-                    
-                    data.records.forEach(record => {
-                        const key = `${record.name}_${record.floor}_${new Date(record.date).getTime()}`;
-                        if (!existingKeys.has(key)) {
-                            inspectionHistory.push(record);
-                        }
-                    });
-                    
-                    inspectionHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
-                }
-                
-                // 보류 중인 레코드 동기화
-                if (pendingRecords.length > 0) {
-                    for (const record of pendingRecords) {
-                        await saveRecordToServer(record, true);
-                    }
-                    pendingRecords = [];
+                if (data.records) {
+                    inspectionHistory = data.records;
                 }
                 
                 saveLocalData();
@@ -641,99 +619,32 @@
             }
         }
 
-        // ★★★ JSONP 방식 fetch 함수 ★★★
-        function fetchWithJsonp(url) {
-            return new Promise((resolve, reject) => {
-                const callbackName = 'jsonpCallback_' + Date.now();
-                const script = document.createElement('script');
-                
-                // 타임아웃 설정
-                const timeout = setTimeout(() => {
-                    cleanup();
-                    // 타임아웃 시 일반 fetch 시도
-                    fetch(url, { redirect: 'follow' })
-                        .then(res => res.json())
-                        .then(resolve)
-                        .catch(reject);
-                }, 5000);
-                
-                window[callbackName] = function(data) {
-                    cleanup();
-                    resolve(data);
-                };
-                
-                function cleanup() {
-                    clearTimeout(timeout);
-                    delete window[callbackName];
-                    if (script.parentNode) {
-                        script.parentNode.removeChild(script);
-                    }
-                }
-                
-                script.onerror = function() {
-                    cleanup();
-                    // 에러 시 일반 fetch 시도
-                    fetch(url, { redirect: 'follow' })
-                        .then(res => res.json())
-                        .then(resolve)
-                        .catch(reject);
-                };
-                
-                // JSONP URL 또는 일반 URL
-                if (url.includes('?')) {
-                    script.src = `${url}&callback=${callbackName}`;
-                } else {
-                    script.src = `${url}?callback=${callbackName}`;
-                }
-                
-                document.head.appendChild(script);
-                
-                // 5초 후 일반 fetch로 폴백
-                setTimeout(() => {
-                    if (window[callbackName]) {
-                        cleanup();
-                        fetch(url, { redirect: 'follow' })
-                            .then(res => res.json())
-                            .then(resolve)
-                            .catch(reject);
-                    }
-                }, 3000);
-            });
-        }
-
-        // ★★★ POST 요청 (form submit 방식) ★★★
-        async function saveRecordToServer(record, skipPending = false) {
-            if (!apiUrl) {
-                if (!skipPending) {
-                    pendingRecords.push(record);
-                    saveLocalData();
-                }
-                return;
-            }
+        // ★★★ GET 방식으로 점검 기록 저장 ★★★
+        async function saveRecordToServer(record) {
+            if (!apiUrl) return;
             
             try {
-                // Google Apps Script는 form 데이터를 잘 받음
-                const formData = new FormData();
-                formData.append('action', 'pc_addRecord');
-                formData.append('name', record.name);
-                formData.append('floor', record.floor);
-                formData.append('date', record.date);
-                formData.append('inspector', record.inspector || '');
-                formData.append('note', record.note || '');
-                
-                // no-cors 모드로 전송 (응답은 못 읽지만 전송은 됨)
-                await fetch(apiUrl, {
-                    method: 'POST',
-                    mode: 'no-cors',
-                    body: formData
+                const params = new URLSearchParams({
+                    action: 'pc_addRecord',
+                    name: record.name,
+                    floor: record.floor,
+                    date: record.date,
+                    inspector: record.inspector || '',
+                    note: record.note || ''
                 });
                 
+                const response = await fetch(`${apiUrl}?${params.toString()}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    console.log('저장 성공:', result);
+                    // 저장 성공 후 동기화
+                    setTimeout(() => syncWithServer(), 1000);
+                } else {
+                    console.error('저장 실패:', result);
+                }
             } catch (error) {
                 console.error('저장 오류:', error);
-                if (!skipPending) {
-                    pendingRecords.push(record);
-                    saveLocalData();
-                }
             }
         }
 
@@ -778,7 +689,7 @@
             updateStats();
         }
 
-        // ★ 점검완료 버튼 표시 추가
+        // ★ 점검완료 버튼 표시
         function renderStudentList() {
             const container = document.getElementById('student-list');
             let filtered = [...allStudents];
@@ -926,6 +837,7 @@
                 note: note
             };
             
+            // 로컬 데이터 즉시 업데이트
             const idx = allStudents.findIndex(s => s.name === selectedStudent.name && s.floor === selectedStudent.floor);
             if (idx !== -1) {
                 allStudents[idx].lastCheck = now.toISOString();
@@ -937,8 +849,10 @@
             
             saveLocalData();
             closeModal();
-            saveRecordToServer(record);
             render();
+            
+            // 서버에 저장 (GET 방식)
+            await saveRecordToServer(record);
             
             const noteMsg = note ? ` (특이사항: ${note})` : '';
             showToast(`✅ ${selectedStudent.name} 점검 완료! (조치자: ${inspector})${noteMsg}`, 'success');
@@ -988,7 +902,6 @@
                 localStorage.removeItem('pc-inspection-data');
                 allStudents = [];
                 inspectionHistory = [];
-                pendingRecords = [];
                 recentInspectors = [];
                 startAutoSync();
                 showToast('🗑️ 초기화 완료');
