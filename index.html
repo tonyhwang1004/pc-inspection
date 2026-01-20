@@ -170,6 +170,14 @@
         }
         .check-btn:hover { background: var(--primary-dark); }
         
+        /* ★ 점검완료 버튼 스타일 추가 */
+        .check-btn.done {
+            background: var(--success);
+        }
+        .check-btn.done:hover {
+            background: #059669;
+        }
+        
         .right-panel { position: sticky; top: 20px; }
         
         .data-actions { display: flex; gap: 8px; padding: 16px; border-top: 1px solid var(--gray-200); background: var(--gray-50); flex-wrap: wrap; }
@@ -471,7 +479,7 @@
             
             <div class="modal-buttons">
                 <button class="modal-btn cancel" onclick="closeModal()">취소</button>
-                <button class="modal-btn confirm" onclick="completeInspection()">✓ 점검 필요</button>
+                <button class="modal-btn confirm" onclick="completeInspection()">✓ 점검 완료</button>
             </div>
         </div>
     </div>
@@ -696,6 +704,7 @@
             updateStats();
         }
 
+        // ★ 수정된 renderStudentList 함수 - 점검완료 버튼 표시
         function renderStudentList() {
             const container = document.getElementById('student-list');
             let filtered = [...allStudents];
@@ -731,6 +740,11 @@
                 const lastCheck = student.lastCheck ? new Date(student.lastCheck).toLocaleDateString('ko-KR') : '-';
                 const inspectorInfo = student.lastInspector ? `<div class="inspector-info">👤 최근 조치자: ${student.lastInspector}</div>` : '';
                 
+                // ★ 버튼 분기 처리: 점검필요 vs 점검완료
+                const buttonHtml = overdue 
+                    ? `<button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">점검 필요</button>`
+                    : `<button class="check-btn done" onclick="openConfirmModal('${student.name}', '${student.floor}')">✓ 점검완료</button>`;
+                
                 return `
                     <div class="student-item ${itemClass}">
                         <span class="floor-badge floor-${student.floor === '7층' ? '7' : '8'}">${student.floor}</span>
@@ -739,7 +753,7 @@
                             <div class="student-status ${statusClass}">${status} | 최근: ${lastCheck}</div>
                             ${inspectorInfo}
                         </div>
-                        <button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">점검 필요</button>
+                        ${buttonHtml}
                     </div>
                 `;
             }).join('');
@@ -786,8 +800,8 @@
 
         function openConfirmModal(name, floor) {
             selectedStudent = { name, floor };
-            document.getElementById('modal-title').textContent = `${name} 점검 필요`;
-            document.getElementById('modal-message').textContent = `${floor} ${name} 학생의 PC/태블릿 점검이 필요합니다.`;
+            document.getElementById('modal-title').textContent = `${name} 점검 완료`;
+            document.getElementById('modal-message').textContent = `${floor} ${name} 학생의 PC/태블릿 점검을 완료합니다.`;
             document.getElementById('note-input').value = '';
             document.getElementById('inspector-input').value = '';
             
@@ -853,7 +867,7 @@
             render();
             
             const noteMsg = note ? ` (특이사항: ${note})` : '';
-            showToast(`✅ ${selectedStudent.name} 점검 필요 등록! (조치자: ${inspector})${noteMsg}`, 'success');
+            showToast(`✅ ${selectedStudent.name} 점검 완료! (조치자: ${inspector})${noteMsg}`, 'success');
         }
 
         function openSettingsModal() {
