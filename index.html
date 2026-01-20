@@ -170,7 +170,7 @@
         }
         .check-btn:hover { background: var(--primary-dark); }
         
-        /* ★ 점검완료 버튼 스타일 추가 */
+        /* ★ 점검완료 버튼 스타일 */
         .check-btn.done {
             background: var(--success);
         }
@@ -458,18 +458,16 @@
         </div>
     </div>
 
-    <!-- 점검 확인 모달 (조치자 입력 추가) -->
+    <!-- 점검 확인 모달 -->
     <div class="modal-overlay" id="confirm-modal">
         <div class="modal">
-            <h3 id="modal-title">점검 필요 확인</h3>
-            <p id="modal-message">학생의 PC/태블릿 점검이 필요합니다.</p>
+            <h3 id="modal-title">점검 완료</h3>
+            <p id="modal-message">학생의 PC/태블릿 점검을 완료합니다.</p>
             
             <div class="input-wrapper">
                 <label for="inspector-input" class="required">👤 조치자 (담당자)</label>
                 <input type="text" id="inspector-input" class="text-input" placeholder="조치한 사람 이름을 입력하세요">
-                <div class="inspector-buttons" id="inspector-buttons">
-                    <!-- 최근 조치자 버튼이 여기에 추가됨 -->
-                </div>
+                <div class="inspector-buttons" id="inspector-buttons"></div>
             </div>
             
             <div class="input-wrapper">
@@ -505,7 +503,7 @@
     <div class="toast" id="toast"></div>
 
     <script>
-        // ★★★ API URL 하드코딩 - 모든 기기에서 자동 연결 ★★★
+        // ★★★ API URL ★★★
         const DEFAULT_API_URL = 'https://script.google.com/macros/s/AKfycbwGFbsj8FgFIuF-iFkJ4ekyS76MWQf9UrUysJ-Fs12vuVByJwenoYRgOJeOZiPOa6gzkg/exec';
         
         let allStudents = [];
@@ -515,7 +513,6 @@
         let selectedStudent = null;
         let recentInspectors = [];
         
-        // localStorage에 저장된 URL이 있으면 사용, 없으면 기본 URL 사용
         let apiUrl = localStorage.getItem('pc-inspection-api-url') || DEFAULT_API_URL;
         let syncInterval = parseInt(localStorage.getItem('pc-inspection-sync-interval')) || 30;
         let syncTimer = null;
@@ -587,6 +584,7 @@
             el.querySelector('.sync-text').textContent = text;
         }
 
+        // ★★★ CORS 문제 해결을 위한 JSONP 방식 ★★★
         async function syncWithServer() {
             if (!apiUrl || isSyncing) return;
             
@@ -594,8 +592,8 @@
             updateSyncStatus('syncing', '동기화 중...');
             
             try {
-                const response = await fetch(`${apiUrl}?action=pc_getAll`);
-                const data = await response.json();
+                // JSONP 방식으로 GET 요청
+                const data = await fetchWithJsonp(`${apiUrl}?action=pc_getAll`);
                 
                 if (data.error) throw new Error(data.error);
                 
@@ -623,12 +621,11 @@
                     inspectionHistory.sort((a, b) => new Date(a.date) - new Date(b.date));
                 }
                 
+                // 보류 중인 레코드 동기화
                 if (pendingRecords.length > 0) {
-                    await fetch(apiUrl, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ action: 'pc_syncRecords', records: pendingRecords })
-                    });
+                    for (const record of pendingRecords) {
+                        await saveRecordToServer(record, true);
+                    }
                     pendingRecords = [];
                 }
                 
@@ -644,22 +641,99 @@
             }
         }
 
-        async function saveRecordToServer(record) {
+        // ★★★ JSONP 방식 fetch 함수 ★★★
+        function fetchWithJsonp(url) {
+            return new Promise((resolve, reject) => {
+                const callbackName = 'jsonpCallback_' + Date.now();
+                const script = document.createElement('script');
+                
+                // 타임아웃 설정
+                const timeout = setTimeout(() => {
+                    cleanup();
+                    // 타임아웃 시 일반 fetch 시도
+                    fetch(url, { redirect: 'follow' })
+                        .then(res => res.json())
+                        .then(resolve)
+                        .catch(reject);
+                }, 5000);
+                
+                window[callbackName] = function(data) {
+                    cleanup();
+                    resolve(data);
+                };
+                
+                function cleanup() {
+                    clearTimeout(timeout);
+                    delete window[callbackName];
+                    if (script.parentNode) {
+                        script.parentNode.removeChild(script);
+                    }
+                }
+                
+                script.onerror = function() {
+                    cleanup();
+                    // 에러 시 일반 fetch 시도
+                    fetch(url, { redirect: 'follow' })
+                        .then(res => res.json())
+                        .then(resolve)
+                        .catch(reject);
+                };
+                
+                // JSONP URL 또는 일반 URL
+                if (url.includes('?')) {
+                    script.src = `${url}&callback=${callbackName}`;
+                } else {
+                    script.src = `${url}?callback=${callbackName}`;
+                }
+                
+                document.head.appendChild(script);
+                
+                // 5초 후 일반 fetch로 폴백
+                setTimeout(() => {
+                    if (window[callbackName]) {
+                        cleanup();
+                        fetch(url, { redirect: 'follow' })
+                            .then(res => res.json())
+                            .then(resolve)
+                            .catch(reject);
+                    }
+                }, 3000);
+            });
+        }
+
+        // ★★★ POST 요청 (form submit 방식) ★★★
+        async function saveRecordToServer(record, skipPending = false) {
             if (!apiUrl) {
-                pendingRecords.push(record);
-                saveLocalData();
+                if (!skipPending) {
+                    pendingRecords.push(record);
+                    saveLocalData();
+                }
                 return;
             }
             
             try {
+                // Google Apps Script는 form 데이터를 잘 받음
+                const formData = new FormData();
+                formData.append('action', 'pc_addRecord');
+                formData.append('name', record.name);
+                formData.append('floor', record.floor);
+                formData.append('date', record.date);
+                formData.append('inspector', record.inspector || '');
+                formData.append('note', record.note || '');
+                
+                // no-cors 모드로 전송 (응답은 못 읽지만 전송은 됨)
                 await fetch(apiUrl, {
                     method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ action: 'pc_addRecord', ...record })
+                    mode: 'no-cors',
+                    body: formData
                 });
+                
             } catch (error) {
-                pendingRecords.push(record);
-                saveLocalData();
+                console.error('저장 오류:', error);
+                if (!skipPending) {
+                    pendingRecords.push(record);
+                    saveLocalData();
+                }
             }
         }
 
@@ -704,7 +778,7 @@
             updateStats();
         }
 
-        // ★ 수정된 renderStudentList 함수 - 점검완료 버튼 표시
+        // ★ 점검완료 버튼 표시 추가
         function renderStudentList() {
             const container = document.getElementById('student-list');
             let filtered = [...allStudents];
@@ -740,7 +814,7 @@
                 const lastCheck = student.lastCheck ? new Date(student.lastCheck).toLocaleDateString('ko-KR') : '-';
                 const inspectorInfo = student.lastInspector ? `<div class="inspector-info">👤 최근 조치자: ${student.lastInspector}</div>` : '';
                 
-                // ★ 버튼 분기 처리: 점검필요 vs 점검완료
+                // ★ 버튼 분기: 점검필요 vs 점검완료
                 const buttonHtml = overdue 
                     ? `<button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">점검 필요</button>`
                     : `<button class="check-btn done" onclick="openConfirmModal('${student.name}', '${student.floor}')">✓ 점검완료</button>`;
