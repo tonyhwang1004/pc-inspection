@@ -84,6 +84,111 @@
         .stat-card .label { font-size: 12px; color: var(--gray-500); }
         .stat-card.warning .number { color: var(--danger); }
         
+        /* ★★★ 층별 현황 카드 ★★★ */
+        .floor-stats-section {
+            background: white;
+            border-radius: 16px;
+            padding: 20px 24px;
+            margin-bottom: 24px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .floor-stats-title {
+            font-size: 16px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .floor-stats-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 16px;
+        }
+        @media (max-width: 768px) {
+            .floor-stats-grid { grid-template-columns: 1fr; }
+        }
+        .floor-stat-card {
+            border-radius: 12px;
+            padding: 20px;
+            position: relative;
+            overflow: hidden;
+        }
+        .floor-stat-card.floor-7 {
+            background: linear-gradient(135deg, var(--floor-7-light), #f3e8ff);
+            border: 2px solid var(--floor-7);
+        }
+        .floor-stat-card.floor-8 {
+            background: linear-gradient(135deg, var(--floor-8-light), #e0f7fa);
+            border: 2px solid var(--floor-8);
+        }
+        .floor-stat-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .floor-stat-label {
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .floor-stat-card.floor-7 .floor-stat-label { color: var(--floor-7); }
+        .floor-stat-card.floor-8 .floor-stat-label { color: var(--floor-8); }
+        .floor-stat-remaining {
+            font-size: 14px;
+            font-weight: 600;
+            padding: 4px 12px;
+            border-radius: 20px;
+        }
+        .floor-stat-card.floor-7 .floor-stat-remaining {
+            background: var(--floor-7);
+            color: white;
+        }
+        .floor-stat-card.floor-8 .floor-stat-remaining {
+            background: var(--floor-8);
+            color: white;
+        }
+        .floor-stat-numbers {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-bottom: 12px;
+        }
+        .floor-stat-completed {
+            font-size: 36px;
+            font-weight: 700;
+        }
+        .floor-stat-card.floor-7 .floor-stat-completed { color: var(--floor-7); }
+        .floor-stat-card.floor-8 .floor-stat-completed { color: var(--floor-8); }
+        .floor-stat-total {
+            font-size: 20px;
+            color: var(--gray-500);
+        }
+        .floor-stat-progress {
+            height: 10px;
+            background: rgba(255,255,255,0.8);
+            border-radius: 5px;
+            overflow: hidden;
+        }
+        .floor-stat-progress-fill {
+            height: 100%;
+            border-radius: 5px;
+            transition: width 0.3s;
+        }
+        .floor-stat-card.floor-7 .floor-stat-progress-fill {
+            background: linear-gradient(90deg, var(--floor-7), #a78bfa);
+        }
+        .floor-stat-card.floor-8 .floor-stat-progress-fill {
+            background: linear-gradient(90deg, var(--floor-8), #22d3ee);
+        }
+        .floor-stat-percent {
+            text-align: right;
+            font-size: 13px;
+            font-weight: 500;
+            margin-top: 8px;
+            color: var(--gray-600);
+        }
+        
         .main-content { display: grid; grid-template-columns: 1fr 380px; gap: 24px; }
         @media (max-width: 1024px) { .main-content { grid-template-columns: 1fr; } }
         
@@ -172,7 +277,6 @@
         }
         .check-btn:hover { background: var(--primary-dark); }
         
-        /* ★ 점검완료 버튼 스타일 */
         .check-btn.done {
             background: var(--success);
             cursor: default;
@@ -351,7 +455,6 @@
             cursor: pointer;
         }
 
-        /* 조치자 선택 버튼 스타일 */
         .inspector-buttons {
             display: flex;
             gap: 8px;
@@ -379,7 +482,6 @@
             color: white;
         }
         
-        /* 월 선택 */
         .month-selector {
             display: flex;
             align-items: center;
@@ -437,6 +539,41 @@
                 </div>
             </div>
         </header>
+
+        <!-- ★★★ 층별 현황 섹션 추가 ★★★ -->
+        <div class="floor-stats-section">
+            <div class="floor-stats-title">📊 층별 점검 현황</div>
+            <div class="floor-stats-grid">
+                <div class="floor-stat-card floor-7">
+                    <div class="floor-stat-header">
+                        <span class="floor-stat-label">🏠 7층</span>
+                        <span class="floor-stat-remaining" id="floor7-remaining">0명 남음</span>
+                    </div>
+                    <div class="floor-stat-numbers">
+                        <span class="floor-stat-completed" id="floor7-completed">0</span>
+                        <span class="floor-stat-total">/ <span id="floor7-total">0</span>명</span>
+                    </div>
+                    <div class="floor-stat-progress">
+                        <div class="floor-stat-progress-fill" id="floor7-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="floor-stat-percent" id="floor7-percent">0% 완료</div>
+                </div>
+                <div class="floor-stat-card floor-8">
+                    <div class="floor-stat-header">
+                        <span class="floor-stat-label">🏢 8층</span>
+                        <span class="floor-stat-remaining" id="floor8-remaining">0명 남음</span>
+                    </div>
+                    <div class="floor-stat-numbers">
+                        <span class="floor-stat-completed" id="floor8-completed">0</span>
+                        <span class="floor-stat-total">/ <span id="floor8-total">0</span>명</span>
+                    </div>
+                    <div class="floor-stat-progress">
+                        <div class="floor-stat-progress-fill" id="floor8-progress" style="width: 0%"></div>
+                    </div>
+                    <div class="floor-stat-percent" id="floor8-percent">0% 완료</div>
+                </div>
+            </div>
+        </div>
 
         <div class="main-content">
             <div class="left-panel">
@@ -602,7 +739,6 @@
             el.querySelector('.sync-text').textContent = text;
         }
 
-        // ★★★ 서버에서 데이터 가져오기 ★★★
         async function syncWithServer() {
             if (!apiUrl || isSyncing) return;
             
@@ -640,7 +776,6 @@
             }
         }
 
-        // ★★★ GET 방식으로 점검 기록 저장 ★★★
         async function saveRecordToServer(record) {
             if (!apiUrl) return;
             
@@ -659,8 +794,10 @@
                 
                 if (result.success) {
                     console.log('저장 성공:', result);
-                    // 저장 성공 후 동기화
                     setTimeout(() => syncWithServer(), 1000);
+                } else if (result.error === 'DUPLICATE') {
+                    // ★★★ 중복 점검 경고 ★★★
+                    showToast(`⚠️ ${result.message}`, 'warning');
                 } else {
                     console.error('저장 실패:', result);
                 }
@@ -691,19 +828,16 @@
             }
         }
 
-        // ★★★ 이번 달에 점검했는지 확인 ★★★
         function isCheckedThisMonth(student) {
             if (!student.lastCheck) return false;
             
             const lastCheckDate = new Date(student.lastCheck);
             const now = new Date();
             
-            // 같은 년도, 같은 달이면 이번 달에 점검한 것
             return lastCheckDate.getFullYear() === now.getFullYear() && 
                    lastCheckDate.getMonth() === now.getMonth();
         }
 
-        // ★★★ 점검 필요 여부 (이번 달 기준) ★★★
         function needsInspection(student) {
             return !isCheckedThisMonth(student);
         }
@@ -720,9 +854,41 @@
             renderStudentList();
             renderHistory();
             updateStats();
+            updateFloorStats(); // ★★★ 층별 현황 업데이트 ★★★
         }
 
-        // ★ 이번 달 점검 여부로 버튼 표시
+        // ★★★ 층별 현황 업데이트 함수 ★★★
+        function updateFloorStats() {
+            const floor7Students = allStudents.filter(s => s.floor === '7층');
+            const floor8Students = allStudents.filter(s => s.floor === '8층');
+            
+            const floor7Completed = floor7Students.filter(s => isCheckedThisMonth(s)).length;
+            const floor8Completed = floor8Students.filter(s => isCheckedThisMonth(s)).length;
+            
+            const floor7Total = floor7Students.length;
+            const floor8Total = floor8Students.length;
+            
+            const floor7Remaining = floor7Total - floor7Completed;
+            const floor8Remaining = floor8Total - floor8Completed;
+            
+            const floor7Percent = floor7Total > 0 ? Math.round((floor7Completed / floor7Total) * 100) : 0;
+            const floor8Percent = floor8Total > 0 ? Math.round((floor8Completed / floor8Total) * 100) : 0;
+            
+            // 7층
+            document.getElementById('floor7-completed').textContent = floor7Completed;
+            document.getElementById('floor7-total').textContent = floor7Total;
+            document.getElementById('floor7-remaining').textContent = floor7Remaining + '명 남음';
+            document.getElementById('floor7-progress').style.width = floor7Percent + '%';
+            document.getElementById('floor7-percent').textContent = floor7Percent + '% 완료';
+            
+            // 8층
+            document.getElementById('floor8-completed').textContent = floor8Completed;
+            document.getElementById('floor8-total').textContent = floor8Total;
+            document.getElementById('floor8-remaining').textContent = floor8Remaining + '명 남음';
+            document.getElementById('floor8-progress').style.width = floor8Percent + '%';
+            document.getElementById('floor8-percent').textContent = floor8Percent + '% 완료';
+        }
+
         function renderStudentList() {
             const container = document.getElementById('student-list');
             let filtered = [...allStudents];
@@ -735,7 +901,6 @@
                 filtered = filtered.filter(s => s.name.includes(searchQuery));
             }
             
-            // 점검 필요한 학생 먼저, 그 다음 완료된 학생
             filtered.sort((a, b) => {
                 const aNeeds = needsInspection(a);
                 const bNeeds = needsInspection(b);
@@ -773,7 +938,6 @@
                 const lastCheck = student.lastCheck ? new Date(student.lastCheck).toLocaleDateString('ko-KR') : '-';
                 const inspectorInfo = student.lastInspector ? `<div class="inspector-info">👤 최근 조치자: ${student.lastInspector}</div>` : '';
                 
-                // ★ 버튼 분기: 점검필요 vs 점검완료
                 let buttonHtml;
                 if (needs) {
                     buttonHtml = `<button class="check-btn" onclick="openConfirmModal('${student.name}', '${student.floor}')">점검 필요</button>`;
@@ -831,7 +995,6 @@
         }
 
         function openConfirmModal(name, floor) {
-            // ★★★ 이미 이번 달에 점검한 학생인지 확인 ★★★
             const student = allStudents.find(s => s.name === name && s.floor === floor);
             if (student && isCheckedThisMonth(student)) {
                 showToast('⚠️ 이미 이번 달에 점검한 학생입니다!', 'warning');
@@ -873,7 +1036,6 @@
         async function completeInspection() {
             if (!selectedStudent) return;
             
-            // ★★★ 다시 한번 중복 체크 ★★★
             const student = allStudents.find(s => s.name === selectedStudent.name && s.floor === selectedStudent.floor);
             if (student && isCheckedThisMonth(student)) {
                 showToast('⚠️ 이미 이번 달에 점검한 학생입니다!', 'warning');
@@ -899,7 +1061,6 @@
                 note: note
             };
             
-            // 로컬 데이터 즉시 업데이트
             const idx = allStudents.findIndex(s => s.name === selectedStudent.name && s.floor === selectedStudent.floor);
             if (idx !== -1) {
                 allStudents[idx].lastCheck = now.toISOString();
@@ -913,7 +1074,6 @@
             closeModal();
             render();
             
-            // 서버에 저장 (GET 방식)
             await saveRecordToServer(record);
             
             const noteMsg = note ? ` (특이사항: ${note})` : '';
